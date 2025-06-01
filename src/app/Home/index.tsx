@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -7,33 +8,46 @@ import {
   View,
 } from "react-native";
 
-import { styles } from "@/app/Home/styles";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Filter } from "@/components/Filter";
-import { FilterStatus } from "@/types/FilterStatus";
 import { Item } from "@/components/Item";
-import { useState } from "react";
+
+import { styles } from "@/app/Home/styles";
+import { FilterStatus } from "@/types/FilterStatus";
+import { itemsStorage, ItemsStorage } from "@/storage/itemsStorage";
 
 const FILTER_STATUS: FilterStatus[] = [FilterStatus.PENDING, FilterStatus.DONE];
 
 export function Home() {
+  const [items, setItems] = useState<ItemsStorage[]>([]);
   const [filter, setFilter] = useState(FilterStatus.PENDING);
   const [description, setDescription] = useState("");
-  const [items, setItems] = useState<any>([]);
 
   function handleAdd() {
     if (!description.trim()) {
-      return Alert.alert("Adicionar", "Informe a descrição para adicionar");
+      return Alert.alert("Adicionar", "Informe a descrição para adicionar.");
     }
 
     const newItem = {
-      id: Math.random().toString(36).substring(2),
+      id: Math.random().toString().substring(2),
       description,
-      styles: FilterStatus.PENDIN,
+      status: FilterStatus.PENDING,
     };
+  }
 
-    setItems((prevState) => [...prevState, newItem]);
+  useEffect(() => {
+    getItems();
+  }, []);
+
+  async function getItems() {
+    try {
+      const response = await itemsStorage.get();
+      setItems(response);
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Erro", "Não foi possível filtrar os itens.");
+    }
   }
 
   return (
